@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BharatDarshan – Explore India State by State</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#eef2f9; --panel:#ffffff; --sea:#d9e8f7; --ink:#0f1b3d; --muted:#5a6788; --line:#d3dbeb; --accent:#ff9933; --on-accent:#0f1b3d;
+  --north:#1f8a70; --west:#f2a03d; --central:#7a5cc9; --east:#e4572e; --south:#1e6fd9; --ne:#43a047; --island:#6b7b8c;
+}
+:root[data-theme="dark"]{
+  --bg:#0b1220; --panel:#131d33; --sea:#0d1a2e; --ink:#e8eefc; --muted:#98a6c8; --line:#25324f; --accent:#ffa94d; --on-accent:#0b1220;
+  --north:#2aa88a; --west:#e8a13f; --central:#9278dd; --east:#ee6a41; --south:#3a86ec; --ne:#58b45c; --island:#7d8ea1;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 16px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:20px;align-items:start}
+@media(max-width:840px){.layout{grid-template-columns:minmax(0,1fr)}}
+.layout>*{min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:.85rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip .dot{width:10px;height:10px;border-radius:50%}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.chip:focus-visible,.item:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.mapwrap{background:var(--sea);border:1px solid var(--line);border-radius:14px;padding:6px}
+svg{display:block;width:100%;height:auto;max-height:82vh}
+.st{stroke:var(--bg);stroke-width:1;stroke-linejoin:round;cursor:pointer;transition:opacity .2s, filter .12s}
+.st:hover{filter:brightness(1.15)}
+.st:focus-visible{outline:none;stroke:var(--ink);stroke-width:2.5}
+.st.dim{opacity:.15}
+.st.sel{stroke:var(--accent);stroke-width:3;filter:brightness(1.12)}
+.r-north{fill:var(--north)}.r-west{fill:var(--west)}.r-central{fill:var(--central)}
+.r-east{fill:var(--east)}.r-south{fill:var(--south)}.r-ne{fill:var(--ne)}.r-island{fill:var(--island)}
+.lab{font-size:8.5px;font-weight:600;fill:#fff;text-anchor:middle;dominant-baseline:middle;pointer-events:none;paint-order:stroke;stroke:rgba(0,0,0,.35);stroke-width:2px}
+.note{font-size:.78rem;color:var(--muted);margin:10px 2px 0}
+aside{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 78px);max-height:calc(100vh - 96px);overflow:auto}
+@media(max-width:840px){aside{position:static;order:-1}}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--panel);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap}
+.brand{border-left:5px solid var(--accent);padding-left:10px;font-weight:800;font-size:1.15rem;letter-spacing:-.02em;margin-right:6px}
+.links{display:flex;gap:4px}
+.links a{color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:8px;font-weight:600;font-size:.92rem}
+.links a:hover{background:var(--bg)}
+.links a[aria-current="page"]{background:var(--accent);color:var(--on-accent)}
+.links a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.nsearch{margin-left:auto;position:relative;width:260px}
+@media(max-width:640px){.nsearch{width:100%;order:3;margin-left:0}}
+.nsearch input{width:100%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:.9rem}
+.nsearch input:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:4px;display:none;max-height:300px;overflow:auto;z-index:40}
+.suggest.open{display:block}
+.suggest button{display:flex;width:100%;justify-content:space-between;gap:10px;align-items:center;background:none;border:0;color:var(--ink);font:inherit;font-size:.88rem;padding:7px 10px;border-radius:8px;cursor:pointer;text-align:left}
+.suggest button:hover,.suggest button.act{background:var(--bg)}
+.suggest small{color:var(--muted)}
+.suggest .none{padding:8px 10px;color:var(--muted);font-size:.88rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;max-width:560px}
+.card h2{margin:0 0 4px}
+.field{display:block;margin:12px 0 0;font-size:.85rem;color:var(--muted)}
+.field input,.field textarea,.field select{display:block;width:100%;margin-top:4px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;font-size:.95rem}
+.field textarea{min-height:110px;resize:vertical}
+.field input:focus-visible,.field textarea:focus-visible,.field select:focus-visible{outline:3px solid var(--ink);outline-offset:1px}
+.btn{margin-top:16px;border:0;background:var(--accent);color:var(--on-accent);border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-left:8px}
+.msg{margin:12px 0 0;font-size:.88rem;color:var(--muted)}
+.msg.err{color:#c0392b}
+.hint{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+.toolbar{scrollbar-width:thin}
+@media(max-width:840px){
+  main{padding:16px 14px 36px}
+  svg{max-height:none}
+}
+@media(max-width:640px){
+  main{padding:12px 10px 32px}
+  .nav{position:static}
+  .nav-in{padding:8px 12px;gap:8px}
+  .brand{font-size:1rem;margin-right:0}
+  .links{flex:1;justify-content:flex-start}
+  .links a{padding:8px 11px}
+  .nsearch{order:3;flex:1 1 0;width:auto;min-width:0;margin-left:0}
+  .themebtn{order:4;padding:9px 12px;margin-left:0;flex:0 0 auto}
+  .nsearch input{padding:9px 14px;font-size:16px}
+  .toolbar{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;margin-left:-2px}
+  .chip{flex:0 0 auto}
+  .mapwrap{padding:2px;border-radius:12px}
+  .lab{font-size:12px;stroke-width:2.5px}
+  .call{font-size:11px}
+  .sea{font-size:11px}
+  .ctry{display:none}
+  .card{padding:16px}
+  aside{padding:14px}
+  .item{padding:7px 11px;font-size:.85rem}
+}
+.tag{margin:4px 0 4px;color:var(--muted);font-style:italic}
+.meta{margin:0 0 6px;font-size:.88rem;color:var(--muted)}
+aside h3{font-size:.98rem;margin:18px 0 8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+aside h3 small{color:var(--muted);font-weight:400;font-size:.8rem}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.tl li{padding-left:14px;position:relative;font-size:.93rem}
+.tl li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.tl a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.tl a:hover{border-bottom-style:solid}
+.tl a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.themebtn{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.themebtn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+[hidden]{display:none !important}
+textarea.json{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.75rem;min-height:140px}
+aside h2{margin:0 0 2px;font-size:1.4rem;letter-spacing:-.01em}
+.badge{display:inline-block;font-size:.78rem;padding:2px 10px;border-radius:999px;color:#fff;margin-bottom:12px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+dt{color:var(--muted)}dd{margin:0;font-weight:600}
+.empty{color:var(--muted);margin:0}
+a.more{display:inline-block;margin-top:14px;color:var(--ink);font-weight:600}
+.nb{fill:var(--line);opacity:.7;stroke:none}
+.call{font-size:8px;font-weight:600;fill:var(--ink);pointer-events:none}
+.ctry{font-size:8px;font-style:italic;fill:var(--muted);opacity:.85;pointer-events:none}
+.sea{font-size:9px;font-style:italic;letter-spacing:.12em;fill:var(--muted);opacity:.7;pointer-events:none}
+.search{width:100%;max-width:320px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 10px;font:inherit;font-size:.9rem;margin-bottom:10px}
+.search:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.clear{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:5px 10px;font:inherit;font-size:.8rem;cursor:pointer;margin-top:12px;margin-left:12px}
+.listwrap{margin-top:16px}
+.listwrap h3{font-size:1rem;margin:0 0 8px}
+.list{display:flex;flex-wrap:wrap;gap:6px}
+.item{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:4px 9px;font:inherit;font-size:.8rem;cursor:pointer}
+.item[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.item.dim{opacity:.3}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <span class="brand">BharatDarshan</span>
+    <nav class="links" aria-label="Main">
+      <a href="#home" data-view="home">Home</a>
+      <a href="#contact" data-view="contact">Contact</a>
+      <a href="#admin" data-view="admin">Admin</a>
+    </nav>
+    <div class="nsearch">
+      <input id="q" type="search" placeholder="Search state or place" aria-label="Search state or place" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggest">
+      <div class="suggest" id="suggest" role="listbox"></div>
+    </div>
+    <button class="themebtn" id="themebtn" type="button" aria-label="Switch colour theme"></button>
+  </div>
+</header>
+<main>
+  <div id="view-home">
+  <h1 class="sr-only">BharatDarshan: click a state to explore its places, food and holy places</h1>
+  <div class="layout">
+    <section>
+      <div class="toolbar" id="filters" role="group" aria-label="Filter by region"></div>
+      <div class="mapwrap">
+        <svg id="map" viewBox="0 0 660 720" role="group" aria-label="Map of India"></svg>
+      </div>
+      <p class="note">Hand-plotted, simplified outlines: borders are approximate. Delhi, Chandigarh, Puducherry, Dadra &amp; Nagar Haveli and Daman &amp; Diu, and the island groups are enlarged so they can be clicked.</p>
+      <div class="listwrap">
+        <h3>All states and union territories</h3>
+        <div class="list" id="list"></div>
+      </div>
+    </section>
+    <aside aria-live="polite" id="panel">
+      <p class="empty">Click any state on the map to see its famous places, food and holy places.</p>
+    </aside>
+  </div>
+  </div>
+
+  <div id="view-contact" hidden>
+    <h1>Contact</h1>
+    <p class="sub">Questions or corrections to the map? Send a message.</p>
+    <div class="card">
+      <label class="field">Name<input id="c-name" autocomplete="name"></label>
+      <label class="field">Email<input id="c-email" type="email" autocomplete="email"></label>
+      <label class="field">Message<textarea id="c-msg"></textarea></label>
+      <button class="btn" id="c-send">Send message</button>
+      <p class="msg" id="c-status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div id="view-admin" hidden>
+    <h1>Admin</h1>
+    <p class="sub">Edit the places, food and holy places shown for each state.</p>
+    <div class="card" id="adm-login">
+      <h2>Sign in</h2>
+      <label class="field">Username<input id="a-user" autocomplete="username"></label>
+      <label class="field">Password<input id="a-pass" type="password" autocomplete="current-password"></label>
+      <button class="btn" id="a-go">Sign in</button>
+      <p class="msg err" id="a-err" aria-live="polite"></p>
+      <p class="hint">Demo login: admin / admin123. This check runs in the browser only, so it is not real security. A real login needs a backend.</p>
+    </div>
+    <div class="card" id="adm-panel" hidden>
+      <h2>Edit state</h2>
+      <label class="field">State or union territory<select id="a-state"></select></label>
+      <label class="field">Capital<input id="a-cap"></label>
+      <label class="field">Region<select id="a-reg"></select></label>
+      <label class="field">Tagline<input id="a-tag"></label>
+      <label class="field">Places to visit (one per line)<textarea id="a-pl" style="min-height:80px"></textarea></label>
+      <label class="field">Famous food (one per line)<textarea id="a-fd" style="min-height:80px"></textarea></label>
+      <label class="field">Holy places (one per line)<textarea id="a-hl" style="min-height:80px"></textarea></label>
+      <button class="btn" id="a-apply">Apply change</button>
+      <button class="btn ghost" id="a-out">Sign out</button>
+      <p class="msg" id="a-msg" aria-live="polite"></p>
+      <label class="field">Data as JSON (copy to keep your edits)<textarea class="json" id="a-json" readonly></textarea></label>
+      <button class="btn ghost" id="a-copy" style="margin-left:0">Copy JSON</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const REGIONS = {
+  north:{label:"North",v:"--north"}, west:{label:"West",v:"--west"}, central:{label:"Central",v:"--central"},
+  east:{label:"East",v:"--east"}, south:{label:"South",v:"--south"}, ne:{label:"North-East",v:"--ne"}, island:{label:"Islands",v:"--island"}
+};
+
+// name, code, capital, region, type, short label, polygons [[lon,lat],...], optional label position [lon,lat]
+const S = [
+["Jammu & Kashmir","JK","Srinagar (summer), Jammu (winter)","north","Union Territory","J&K",
+ [[[75.3,32.4],[75.7,32.4],[76.3,32.9],[77.0,33.2],[76.6,33.7],[76.0,34.2],[75.4,34.7],[74.7,35.0],[74.0,34.9],[73.4,34.5],[73.5,33.9],[73.9,33.3],[74.3,32.9],[74.8,32.5]]],[74.8,33.9]],
+["Ladakh","LA","Leh","north","Union Territory","Ladakh",
+ [[[77.0,33.2],[76.6,33.7],[76.0,34.2],[75.4,34.7],[74.7,35.0],[74.0,35.6],[74.6,36.6],[75.6,37.0],[76.8,35.9],[77.8,35.5],[79.5,35.3],[80.3,35.4],[80.0,34.2],[79.4,33.2],[78.9,32.5],[78.7,32.0],[78.0,32.5]]],[77.6,34.4]],
+["Himachal Pradesh","HP","Shimla","north","State","Himachal",
+ [[[75.7,32.4],[76.3,32.9],[77.0,33.2],[78.0,32.5],[78.7,32.0],[78.9,31.4],[78.4,31.0],[77.9,30.8],[77.6,30.4],[77.2,30.5],[76.8,30.85],[76.4,31.3],[76.0,31.9]]]],
+["Punjab","PB","Chandigarh","north","State","Punjab",
+ [[[73.9,29.95],[74.0,30.3],[74.6,31.0],[74.9,31.7],[75.3,32.4],[75.7,32.4],[76.0,31.9],[76.4,31.3],[76.8,30.85],[76.2,30.1],[75.4,29.8],[74.5,29.7]]]],
+["Uttarakhand","UK","Dehradun","north","State","Uttarakhand",
+ [[[77.6,30.4],[77.9,30.8],[78.4,31.0],[78.9,31.4],[79.6,31.0],[80.2,30.6],[81.0,30.2],[80.4,29.7],[80.2,29.1],[80.0,28.9],[79.2,28.9],[78.7,29.4],[78.1,29.9],[77.6,30.0]]]],
+["Haryana","HR","Chandigarh","north","State","Haryana",
+ [[[74.5,29.7],[75.4,29.8],[76.2,30.1],[76.8,30.85],[77.2,30.5],[77.6,30.4],[77.6,30.0],[77.5,29.5],[77.6,29.0],[77.4,28.4],[77.5,27.8],[76.3,27.8],[75.9,28.0],[75.3,28.6],[74.7,29.3]]]],
+["Rajasthan","RJ","Jaipur","north","State","Rajasthan",
+ [[[71.0,24.4],[70.2,25.5],[69.6,26.6],[70.1,27.7],[72.3,29.1],[73.9,29.95],[74.5,29.7],[74.7,29.3],[75.3,28.6],[75.9,28.0],[76.3,27.8],[77.5,27.8],[77.9,26.9],[78.3,26.4],[77.8,25.7],[76.9,25.3],[76.2,25.1],[75.6,24.9],[74.8,24.6],[74.5,24.1],[74.1,23.3],[73.9,23.7],[73.5,24.2],[72.9,24.6],[71.9,24.7]]]],
+["Uttar Pradesh","UP","Lucknow","central","State","Uttar Pradesh",
+ [[[77.6,30.0],[78.1,29.9],[78.7,29.4],[79.2,28.9],[80.0,28.85],[81.0,28.6],[81.9,27.9],[82.9,27.5],[83.9,27.35],[84.6,26.3],[84.0,25.6],[83.6,24.5],[83.4,24.1],[82.3,24.1],[81.7,24.6],[80.9,24.9],[79.8,25.1],[78.8,24.9],[78.6,25.3],[78.9,25.9],[78.3,26.4],[77.9,26.9],[77.5,27.8],[77.4,28.4],[77.6,29.0],[77.5,29.5]]],[79.9,26.7]],
+["Madhya Pradesh","MP","Bhopal","central","State","Madhya Pradesh",
+ [[[78.3,26.4],[78.9,25.9],[78.6,25.3],[78.8,24.9],[79.8,25.1],[80.9,24.9],[81.7,24.6],[82.3,24.1],[82.0,23.3],[81.4,22.6],[81.0,22.0],[80.4,21.5],[79.5,21.6],[78.6,21.3],[77.7,21.5],[76.7,21.3],[75.7,21.6],[74.1,21.8],[74.3,22.6],[74.1,23.3],[74.5,24.1],[74.8,24.6],[75.6,24.9],[76.2,25.1],[76.9,25.3],[77.8,25.7]]]],
+["Chhattisgarh","CT","Raipur","central","State","Chhattisgarh",
+ [[[82.3,24.1],[83.4,24.1],[83.9,23.6],[84.2,23.2],[84.1,22.5],[83.7,21.8],[83.3,21.3],[82.6,20.7],[82.2,20.2],[82.0,19.4],[81.7,18.6],[81.3,17.8],[80.8,18.5],[80.3,18.9],[80.5,20.0],[80.8,20.8],[80.4,21.5],[81.0,22.0],[81.4,22.6],[82.0,23.3]]],[82.3,21.6]],
+["Gujarat","GJ","Gandhinagar","west","State","Gujarat",
+ [[[68.2,23.6],[68.9,23.9],[70.1,24.3],[71.0,24.4],[71.9,24.7],[72.9,24.6],[73.5,24.2],[73.9,23.7],[74.1,23.3],[74.3,22.6],[74.1,21.8],[73.7,21.6],[73.4,21.2],[73.2,20.7],[72.95,20.2],[72.8,21.1],[72.5,21.7],[72.5,22.2],[72.1,21.8],[71.6,21.0],[71.0,20.7],[70.3,20.9],[69.6,21.6],[69.0,22.3],[70.2,22.8],[69.3,22.85],[68.6,23.3]]],[71.6,23.0]],
+["Maharashtra","MH","Mumbai","west","State","Maharashtra",
+ [[[74.1,21.8],[75.7,21.6],[76.7,21.3],[77.7,21.5],[78.6,21.3],[79.5,21.6],[80.4,21.5],[80.8,20.8],[80.5,20.0],[80.3,18.9],[79.5,19.4],[78.6,19.8],[77.8,19.1],[77.5,18.5],[77.5,18.0],[77.0,17.9],[76.2,17.6],[75.4,17.2],[74.6,16.6],[74.15,15.8],[73.7,15.75],[73.4,16.5],[73.2,17.4],[72.9,18.5],[72.8,19.2],[72.95,20.2],[73.2,20.7],[73.4,21.2],[73.7,21.6]]],[76.6,19.5]],
+["Goa","GA","Panaji","west","State","Goa",
+ [[[73.7,15.75],[74.15,15.8],[74.3,15.3],[74.1,14.9],[73.9,15.0]]]],
+["Karnataka","KA","Bengaluru","south","State","Karnataka",
+ [[[74.15,15.8],[74.6,16.6],[75.4,17.2],[76.2,17.6],[77.0,17.9],[77.5,18.0],[77.4,17.4],[77.3,16.8],[77.6,16.0],[77.2,15.3],[77.3,14.5],[77.7,13.9],[78.2,13.4],[78.3,13.0],[77.8,12.7],[77.7,12.1],[77.2,11.8],[76.5,11.6],[75.9,11.9],[75.6,12.2],[75.3,12.6],[74.85,12.75],[74.7,13.4],[74.4,14.0],[74.1,14.9],[74.3,15.3]]],[76.0,14.8]],
+["Telangana","TG","Hyderabad","south","State","Telangana",
+ [[[77.5,18.0],[77.5,18.5],[77.8,19.1],[78.6,19.8],[79.5,19.4],[80.3,18.9],[80.8,18.5],[81.3,17.8],[80.9,17.6],[80.5,17.0],[79.9,16.6],[79.2,16.3],[78.4,16.4],[77.6,16.0],[77.3,16.8],[77.4,17.4]]],[79.0,17.9]],
+["Andhra Pradesh","AP","Amaravati","south","State","Andhra Pradesh",
+ [[[77.6,16.0],[78.4,16.4],[79.2,16.3],[79.9,16.6],[80.5,17.0],[80.9,17.6],[81.3,17.8],[82.0,18.1],[82.6,18.6],[83.3,19.0],[84.6,18.9],[83.3,17.8],[82.3,16.9],[81.5,16.2],[80.9,15.7],[80.2,15.2],[80.1,14.4],[80.25,13.6],[79.5,13.5],[78.9,13.4],[78.3,13.0],[78.2,13.4],[77.7,13.9],[77.3,14.5],[77.2,15.3]]],[79.0,15.3]],
+["Kerala","KL","Thiruvananthapuram","south","State","Kerala",
+ [[[76.5,11.6],[75.9,11.9],[75.6,12.2],[75.3,12.6],[74.85,12.75],[75.4,11.7],[75.9,11.0],[76.2,10.2],[76.4,9.5],[76.7,8.9],[77.0,8.3],[77.2,8.9],[77.3,9.6],[77.0,10.3],[76.75,10.9]]],[76.4,10.3]],
+["Tamil Nadu","TN","Chennai","south","State","Tamil Nadu",
+ [[[78.3,13.0],[78.9,13.4],[79.5,13.5],[80.25,13.6],[80.3,13.0],[79.9,12.0],[79.8,11.4],[79.85,10.4],[79.4,10.3],[79.2,9.6],[78.9,9.3],[78.3,8.9],[77.6,8.15],[77.05,8.3],[77.2,8.9],[77.3,9.6],[77.0,10.3],[76.75,10.9],[76.5,11.6],[77.2,11.8],[77.7,12.1],[77.8,12.7]]],[78.2,11.0]],
+["Odisha","OD","Bhubaneswar","east","State","Odisha",
+ [[[84.1,22.5],[84.9,22.0],[85.7,22.3],[86.4,22.6],[86.9,22.3],[87.3,21.9],[87.4,21.6],[86.9,21.0],[86.5,20.3],[85.6,19.7],[84.6,18.9],[83.3,19.0],[82.6,18.6],[82.0,18.1],[81.3,17.8],[81.7,18.6],[82.0,19.4],[82.2,20.2],[82.6,20.7],[83.3,21.3],[83.7,21.8]]],[84.4,20.7]],
+["Jharkhand","JH","Ranchi","east","State","Jharkhand",
+ [[[83.6,24.5],[83.4,24.1],[83.9,23.6],[84.2,23.2],[84.1,22.5],[84.9,22.0],[85.7,22.3],[86.4,22.6],[86.9,22.3],[86.8,23.0],[87.0,23.6],[87.5,24.2],[87.8,25.2],[87.0,25.0],[86.2,24.8],[85.4,24.6],[84.5,24.4]]]],
+["Bihar","BR","Patna","east","State","Bihar",
+ [[[83.9,27.35],[84.4,27.3],[85.4,26.8],[86.5,26.6],[87.3,26.4],[88.1,26.4],[87.9,25.8],[87.8,25.2],[87.0,25.0],[86.2,24.8],[85.4,24.6],[84.5,24.4],[83.6,24.5],[84.0,25.6],[84.6,26.3]]]],
+["West Bengal","WB","Kolkata","east","State","West Bengal",
+ [[[88.1,26.4],[88.2,27.1],[88.6,27.1],[88.9,26.9],[89.8,26.7],[89.9,26.0],[89.0,25.3],[88.5,24.6],[88.2,24.0],[88.7,23.4],[88.9,22.5],[89.0,21.8],[88.3,21.6],[87.4,21.6],[87.3,21.9],[86.9,22.3],[86.8,23.0],[87.0,23.6],[87.5,24.2],[87.8,25.2],[87.9,25.8]]],[87.6,23.2]],
+["Sikkim","SK","Gangtok","ne","State","Sikkim",
+ [[[88.0,27.9],[88.7,28.1],[88.9,27.5],[88.6,27.1],[88.2,27.1]]]],
+["Arunachal Pradesh","AR","Itanagar","ne","State","Arunachal Pradesh",
+ [[[92.1,26.9],[91.6,27.8],[92.5,28.2],[93.4,28.7],[94.5,29.3],[95.9,29.3],[96.9,28.6],[97.4,28.2],[96.3,27.3],[95.4,27.4],[94.6,27.3],[93.7,26.95]]],[94.4,28.0]],
+["Assam","AS","Dispur","ne","State","Assam",
+ [[[89.8,26.7],[90.6,26.85],[91.7,26.85],[92.1,26.9],[93.7,26.95],[94.6,27.3],[95.4,27.4],[96.0,27.3],[95.3,26.9],[94.5,26.6],[94.0,26.3],[93.6,25.9],[93.4,25.5],[93.05,24.8],[92.6,24.2],[92.3,24.7],[92.6,25.2],[92.0,25.9],[91.0,26.1],[89.9,26.0]]],[92.6,26.5]],
+["Nagaland","NL","Kohima","ne","State","Nagaland",
+ [[[93.4,25.5],[93.6,25.9],[94.0,26.3],[94.5,26.6],[95.3,26.9],[95.2,26.3],[94.8,25.7],[94.4,25.2],[93.8,25.5]]]],
+["Manipur","MN","Imphal","ne","State","Manipur",
+ [[[93.4,25.5],[93.8,25.5],[94.4,25.2],[94.7,24.6],[94.5,24.0],[94.0,23.8],[93.4,24.0],[93.05,24.8]]]],
+["Meghalaya","ML","Shillong","ne","State","Meghalaya",
+ [[[89.9,26.0],[91.0,26.1],[92.0,25.9],[92.6,25.2],[92.3,24.8],[91.5,25.1],[90.5,25.1],[89.9,25.3]]]],
+["Mizoram","MZ","Aizawl","ne","State","Mizoram",
+ [[[92.4,24.5],[93.0,24.7],[93.4,24.0],[93.4,23.0],[93.2,22.3],[92.7,22.6],[92.3,23.3],[92.3,24.0]]]],
+["Tripura","TR","Agartala","ne","State","Tripura",
+ [[[91.2,23.9],[91.6,24.3],[92.3,24.6],[92.2,23.6],[92.0,23.0],[91.5,22.9],[91.2,23.3]]]],
+["Andaman & Nicobar Islands","AN","Port Blair","island","Union Territory","A&N",
+ [[[92.7,13.6],[93.0,13.5],[93.1,12.5],[92.9,11.6],[92.6,11.9],[92.5,12.8]],[[92.6,11.4],[92.95,11.2],[92.8,10.5],[92.5,10.9]],[[92.6,9.4],[93.0,9.4],[93.0,9.0],[92.6,9.0]],[[93.3,8.3],[93.7,8.3],[93.7,7.8],[93.3,7.8]],[[93.6,7.4],[94.0,7.4],[94.0,6.8],[93.6,6.8]]],[92.9,12.6]],
+["Lakshadweep","LD","Kavaratti","island","Union Territory","Lakshadweep",
+ [[[72.1,11.0],[72.4,11.0],[72.4,10.7],[72.1,10.7]],[[72.6,10.7],[72.9,10.7],[72.9,10.4],[72.6,10.4]],[[73.0,8.5],[73.3,8.5],[73.3,8.2],[73.0,8.2]]],null,"none"],
+["Delhi","DL","New Delhi","north","Union Territory","Delhi",
+ [[[76.9,28.9],[77.35,28.9],[77.35,28.4],[76.9,28.4]]],null,"none"],
+["Chandigarh","CH","Chandigarh","north","Union Territory","Chandigarh",
+ [[[76.6,30.9],[76.95,30.9],[76.95,30.6],[76.6,30.6]]],null,"none"],
+["Dadra & Nagar Haveli and Daman & Diu","DH","Daman","west","Union Territory","DNH & DD",
+ [[[72.8,20.55],[73.25,20.55],[73.25,20.1],[72.8,20.1]]],null,"none"],
+["Puducherry","PY","Puducherry","south","Union Territory","Puducherry",
+ [[[79.65,12.15],[80.0,12.15],[80.0,11.8],[79.65,11.8]]],null,"none"]
+];
+
+// Tourism content: code -> [tagline, places to visit, famous food, holy places]
+const TOUR = {
+JK:["Paradise on earth",["Dal Lake (Srinagar)","Gulmarg","Pahalgam"],["Rogan Josh","Wazwan","Kashmiri Kahwa"],["Vaishno Devi Temple (Katra)","Amarnath Cave Temple","Hazratbal Shrine (Srinagar)"]],
+LA:["Land of high passes",["Pangong Lake","Nubra Valley","Leh Palace"],["Thukpa","Momos","Butter Tea"],["Thiksey Monastery","Hemis Monastery","Shanti Stupa (Leh)"]],
+HP:["Land of snow-clad peaks",["Manali","Shimla (The Ridge)","Spiti Valley"],["Siddu","Himachali Dham","Chana Madra"],["Hidimba Devi Temple (Manali)","Jwalamukhi Temple","Key Monastery (Spiti)"]],
+PB:["Land of five rivers",["Wagah Border","Jallianwala Bagh (Amritsar)","Qila Mubarak (Patiala)"],["Makki di Roti & Sarson da Saag","Amritsari Kulcha","Lassi"],["Golden Temple (Amritsar)","Durgiana Temple (Amritsar)","Anandpur Sahib"]],
+UK:["Devbhoomi, the land of gods",["Nainital","Mussoorie","Valley of Flowers"],["Aloo ke Gutke","Kafuli","Bal Mithai"],["Kedarnath Temple","Badrinath Temple","Har Ki Pauri (Haridwar)"]],
+HR:["Land of the Mahabharata",["Surajkund (Faridabad)","Pinjore Gardens","Morni Hills"],["Bajra Khichdi","Kadhi Pakora","Lassi"],["Brahma Sarovar (Kurukshetra)","Jyotisar (Kurukshetra)","Sheetla Mata Temple (Gurugram)"]],
+RJ:["Land of kings",["Hawa Mahal (Jaipur)","Amer Fort (Jaipur)","Jaisalmer Fort"],["Dal Baati Churma","Laal Maas","Pyaaz Kachori","Ghevar"],["Brahma Temple (Pushkar)","Ajmer Sharif Dargah","Karni Mata Temple (Deshnok)","Dilwara Jain Temples (Mount Abu)"]],
+UP:["Heartland of India",["Taj Mahal (Agra)","Fatehpur Sikri","Bara Imambara (Lucknow)"],["Tunday Kababi (Lucknow)","Agra Petha","Banarasi Chaat","Lucknowi Biryani"],["Kashi Vishwanath Temple (Varanasi)","Ram Mandir (Ayodhya)","Banke Bihari Temple (Vrindavan)","Sarnath"]],
+MP:["The heart of incredible India",["Sanchi Stupa","Gwalior Fort","Kanha National Park"],["Poha-Jalebi (Indore)","Bhutte ka Kees","Dal Bafla"],["Mahakaleshwar Temple (Ujjain)","Omkareshwar","Khajuraho Temples","Taj-ul-Masajid (Bhopal)"]],
+CT:["The rice bowl of India",["Chitrakote Falls (Bastar)","Sirpur","Kanger Ghati National Park"],["Chila","Fara","Thethri Khurmi"],["Danteshwari Temple (Dantewada)","Bhoramdeo Temple","Bamleshwari Temple (Dongargarh)"]],
+GJ:["Land of Gandhi and lions",["Statue of Unity (Kevadia)","Rann of Kutch","Gir National Park"],["Dhokla","Thepla","Fafda-Jalebi","Gujarati Thali"],["Somnath Temple","Dwarkadhish Temple (Dwarka)","Akshardham (Gandhinagar)","Jama Masjid (Ahmedabad)"]],
+MH:["Gateway to the west",["Gateway of India (Mumbai)","Ajanta & Ellora Caves","Mahabaleshwar"],["Vada Pav","Misal Pav","Puran Poli","Pav Bhaji"],["Siddhivinayak Temple (Mumbai)","Shirdi Sai Baba Temple","Haji Ali Dargah (Mumbai)","Trimbakeshwar Temple (Nashik)"]],
+GA:["Sun, sand and sea",["Baga Beach","Fort Aguada","Dudhsagar Falls"],["Goan Fish Curry Rice","Pork Vindaloo","Bebinca"],["Basilica of Bom Jesus (Old Goa)","Se Cathedral (Old Goa)","Shri Mangueshi Temple"]],
+KA:["One state, many worlds",["Mysore Palace","Hampi","Coorg"],["Bisi Bele Bath","Masala Dosa","Mysore Pak","Ragi Mudde"],["Udupi Sri Krishna Temple","Shravanabelagola","Chamundeshwari Temple (Mysuru)","Dharmasthala Temple"]],
+TG:["Land of pearls and biryani",["Charminar (Hyderabad)","Golconda Fort","Ramoji Film City"],["Hyderabadi Biryani","Haleem","Irani Chai","Double ka Meetha"],["Mecca Masjid (Hyderabad)","Yadadri Temple","Birla Mandir (Hyderabad)","Bhadrachalam Temple"]],
+AP:["Land of temples and coastline",["Araku Valley","Borra Caves","RK Beach (Visakhapatnam)"],["Pesarattu","Gongura Pachadi","Andhra Biryani","Pulihora"],["Tirumala Venkateswara Temple (Tirupati)","Srisailam Mallikarjuna Temple","Kanaka Durga Temple (Vijayawada)","Simhachalam Temple"]],
+KL:["God's own country",["Alleppey Backwaters","Munnar","Kovalam Beach"],["Appam with Stew","Puttu-Kadala","Kerala Sadya","Malabar Biryani"],["Padmanabhaswamy Temple (Thiruvananthapuram)","Sabarimala","Cheraman Juma Masjid (Kodungallur)","St. Francis Church (Kochi)"]],
+TN:["Land of temples and Tamil culture",["Marina Beach (Chennai)","Ooty","Vivekananda Rock Memorial (Kanyakumari)"],["Idli-Sambar","Chettinad Chicken","Filter Coffee","Pongal"],["Meenakshi Amman Temple (Madurai)","Brihadeeswarar Temple (Thanjavur)","Ramanathaswamy Temple (Rameswaram)","Velankanni Church"]],
+OD:["Soul of incredible India",["Chilika Lake","Konark Sun Temple","Simlipal National Park"],["Dalma","Pakhala Bhata","Chhena Poda","Rasabali"],["Jagannath Temple (Puri)","Lingaraj Temple (Bhubaneswar)","Konark Sun Temple"]],
+JH:["Land of forests and waterfalls",["Hundru Falls (Ranchi)","Netarhat","Betla National Park"],["Dhuska","Litti Chokha","Malpua"],["Baidyanath Dham (Deoghar)","Rajrappa Temple","Parasnath Hill (Jain pilgrimage)"]],
+BR:["Land of Buddha and Nalanda",["Nalanda University Ruins","Rajgir","Valmiki Tiger Reserve"],["Litti Chokha","Sattu Paratha","Khaja","Thekua"],["Mahabodhi Temple (Bodh Gaya)","Vishnupad Temple (Gaya)","Patna Sahib Gurdwara","Mahavir Mandir (Patna)"]],
+WB:["Land of sweets, art and culture",["Victoria Memorial (Kolkata)","Darjeeling","Sundarbans"],["Rasgulla","Macher Jhol","Mishti Doi","Kathi Roll"],["Dakshineswar Kali Temple","Belur Math","Kalighat Temple","Nakhoda Masjid (Kolkata)"]],
+SK:["Land of Kanchenjunga",["Gangtok","Tsomgo Lake","Nathula Pass"],["Momos","Thukpa","Sel Roti"],["Rumtek Monastery","Pemayangtse Monastery","Tashiding Monastery"]],
+AR:["Land of the dawn-lit mountains",["Tawang","Ziro Valley","Namdapha National Park"],["Thukpa","Momos","Bamboo Shoot Dishes"],["Tawang Monastery","Parasuram Kund","Malinithan Temple"]],
+AS:["Land of tea and the Brahmaputra",["Kaziranga National Park","Majuli Island","Sivasagar"],["Masor Tenga (sour fish curry)","Pitha","Khar","Assam Tea"],["Kamakhya Temple (Guwahati)","Umananda Temple (Guwahati)","Hajo"]],
+NL:["Land of festivals",["Kohima War Cemetery","Dzukou Valley","Khonoma Village"],["Smoked Pork with Bamboo Shoot","Axone (fermented soybean)","Galho"],["Kohima Cathedral"]],
+MN:["Jewel of India",["Loktak Lake","Kangla Fort (Imphal)","Keibul Lamjao National Park"],["Eromba","Singju","Chak-hao Kheer (black rice)"],["Shri Govindajee Temple (Imphal)","Vishnu Temple (Bishnupur)"]],
+ML:["Abode of clouds",["Living Root Bridges (Cherrapunji)","Dawki (Umngot River)","Mawlynnong Village"],["Jadoh","Dohneiiong","Tungrymbai"],["Shillong Cathedral","Nartiang Durga Temple","Mawjymbuin Cave"]],
+MZ:["Land of the hill people",["Aizawl","Vantawng Falls","Phawngpui (Blue Mountain)"],["Bai (vegetable stew)","Vawksa Rep (smoked pork)","Sawhchiar"],["Solomon's Temple (Aizawl)"]],
+TR:["Land of palaces and hills",["Ujjayanta Palace (Agartala)","Neermahal","Sepahijala Wildlife Sanctuary"],["Mui Borok","Gudok","Wahan Mosdeng"],["Tripura Sundari Temple (Udaipur)","Unakoti","Chaturdasa Devata Temple"]],
+AN:["Emerald islands of the Bay of Bengal",["Radhanagar Beach (Havelock)","Cellular Jail (Port Blair)","Ross Island"],["Fresh Seafood","Fish Curry with Rice","Coconut Prawn Curry"],["Kali Bari Temple (Port Blair)"]],
+LD:["Coral paradise of the Arabian Sea",["Agatti Island","Minicoy Island Lighthouse","Bangaram Island"],["Tuna Fish Curry","Lakshadweep Halwa","Coconut-based Seafood"],["Ujra Mosque (Kavaratti)","Ubaidullah Shrine (Androth)"]],
+DL:["The capital of India",["India Gate","Red Fort","Qutub Minar","Humayun's Tomb"],["Chole Bhature","Butter Chicken","Parathe (Paranthe Wali Gali)","Daulat ki Chaat"],["Jama Masjid","Akshardham Temple","Lotus Temple","Gurudwara Bangla Sahib"]],
+CH:["The City Beautiful",["Rock Garden","Sukhna Lake","Rose Garden"],["Chole Kulche","Butter Chicken","Lassi"],["Chandi Mandir","Mansa Devi Temple (Panchkula)"]],
+DH:["Beaches, forts and Portuguese heritage",["Diu Fort","Nani Daman Fort","Vanganga Lake (Silvassa)"],["Fresh Seafood","Gujarati Thali","Fish Curry with Rice"],["St. Paul's Church (Diu)","Bom Jesus Church (Daman)","Gangeshwar Mahadev Temple (Diu)"]],
+PY:["The French Riviera of the East",["Promenade Beach","Auroville","White Town"],["French Croissants & Crepes","Puducherry Fish Curry","Tamil Meals"],["Sri Aurobindo Ashram","Manakula Vinayagar Temple","Basilica of the Sacred Heart of Jesus"]]
+};
+
+const NS = "http://www.w3.org/2000/svg";
+const X = lon => (lon-67.8)*21, Y = lat => (37.4-lat)*22.5;
+const svg = document.getElementById('map');
+const gShapes = document.createElementNS(NS,'g');
+const gLabels = document.createElementNS(NS,'g');
+svg.append(gShapes,gLabels);
+const panel = document.getElementById('panel');
+const listEl = document.getElementById('list');
+const filters = document.getElementById('filters');
+let activeRegion=null, selected=-1;
+const paths=[], items=[];
+
+function areaCentroid(pts){
+  let a=0,cx=0,cy=0;
+  for(let i=0;i<pts.length;i++){
+    const [x0,y0]=pts[i], [x1,y1]=pts[(i+1)%pts.length];
+    const f=x0*y1-x1*y0; a+=f; cx+=(x0+x1)*f; cy+=(y0+y1)*f;
+  }
+  a/=2; return {area:Math.abs(a), x:cx/(6*a), y:cy/(6*a)};
+}
+
+S.forEach((s,i)=>{
+  const [name,code,cap,reg,type,short,polys,lab,flag]=s;
+  const proj = polys.map(p=>p.map(([lo,la])=>[X(lo),Y(la)]));
+  const p = document.createElementNS(NS,'path');
+  p.setAttribute('d', proj.map(pl=>'M'+pl.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join('L')+'Z').join(''));
+  p.setAttribute('class','st r-'+reg);
+  p.setAttribute('tabindex','0'); p.setAttribute('role','button');
+  p.setAttribute('aria-label',name+', '+type);
+  p.dataset.region=reg;
+  const t=document.createElementNS(NS,'title'); t.textContent=name; p.appendChild(t);
+  p.addEventListener('click',()=>select(i));
+  p.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();select(i);} });
+  gShapes.appendChild(p); paths.push(p);
+
+  // label
+  if(flag!=='none'){
+    let big=proj.map(areaCentroid).sort((a,b)=>b.area-a.area)[0];
+    let cx=big.x, cy=big.y;
+    if(lab){cx=X(lab[0]);cy=Y(lab[1]);}
+    const xs=proj[0].map(q=>q[0]);
+    const w=Math.max(...xs)-Math.min(...xs);
+    let text=null;
+    if(big.area>1500 && w>short.length*5.0) text=short;
+    else if(big.area>450) text=code;
+    if(text){
+      const l=document.createElementNS(NS,'text');
+      l.setAttribute('class','lab'); l.setAttribute('x',cx.toFixed(1)); l.setAttribute('y',cy.toFixed(1));
+      l.dataset.full=text; l.dataset.code=code; l.textContent=text; gLabels.appendChild(l);
+    }
+  }
+
+  // list button
+  const b=document.createElement('button');
+  b.className='item'; b.textContent=name; b.dataset.region=reg; b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',()=>select(i));
+  listEl.appendChild(b); items.push(b);
+});
+
+// Neighbours, sea names, callouts for tiny regions
+const nb = document.createElementNS(NS,'path');
+nb.setAttribute('class','nb');
+nb.setAttribute('d','M'+[[79.8,9.0],[80.3,9.8],[80.95,9.2],[81.7,8.4],[81.9,7.3],[81.4,6.4],[80.6,5.95],[80.0,6.4],[79.8,7.5]].map(([a,b])=>X(a).toFixed(1)+','+Y(b).toFixed(1)).join('L')+'Z');
+svg.insertBefore(nb,gShapes);
+const gText=document.createElementNS(NS,'g'); svg.appendChild(gText);
+function addText(cls,lon,lat,anchor,txt){
+  const t=document.createElementNS(NS,'text');
+  t.setAttribute('class',cls); t.setAttribute('x',X(lon).toFixed(1)); t.setAttribute('y',Y(lat).toFixed(1));
+  t.style.textAnchor=anchor; t.style.dominantBaseline='middle'; t.textContent=txt; gText.appendChild(t);
+}
+[[68.3,17.8,'start','Arabian Sea'],[86.3,14.6,'middle','Bay of Bengal'],[75.6,6.9,'middle','Indian Ocean']].forEach(a=>addText('sea',...a));
+[[67.9,30.6,'start','Pakistan'],[84.3,32.0,'middle','China (Tibet)'],[83.0,28.9,'middle','Nepal'],[90.3,23.9,'middle','Bangladesh'],[96.4,24.0,'middle','Myanmar'],[80.9,7.7,'middle','Sri Lanka']].forEach(a=>addText('ctry',...a));
+[[71.8,9.6,'end','Lakshadweep'],[94.5,12.4,'start','Andaman & Nicobar'],[80.7,11.8,'start','Puducherry'],[72.55,20.2,'end','DNH & DD'],[73.45,15.3,'end','Goa']].forEach(a=>addText('call',...a));
+[[77.5,28.65,'start','DL'],[77.05,30.75,'start','CH'],[88.55,27.6,'middle','SK']].forEach(([lo,la,an,tx])=>{
+  const t=document.createElementNS(NS,'text'); t.setAttribute('class','lab');
+  t.setAttribute('x',X(lo).toFixed(1)); t.setAttribute('y',Y(la).toFixed(1)); t.style.textAnchor=an; t.textContent=tx; gLabels.appendChild(t);
+});
+
+function clearSel(){
+  selected=-1;
+  paths.forEach(p=>p.classList.remove('sel'));
+  items.forEach(b=>b.setAttribute('aria-pressed','false'));
+  panel.innerHTML='<p class="empty">Click any state on the map to see its famous places, food and holy places.</p>';
+}
+svg.addEventListener('click',e=>{ if(e.target===svg) clearSel(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') clearSel(); });
+const q=document.getElementById('q');
+q.addEventListener('input',()=>{
+  const v=q.value.trim().toLowerCase();
+  items.forEach((b,k)=>{ b.style.display = (!v || S[k][0].toLowerCase().includes(v)) ? '' : 'none'; });
+});
+// search Enter handling is set up below with the navbar suggestions
+
+function select(i){
+  selected=i;
+  const [name,code,cap,reg,type]=S[i];
+  paths.forEach((p,k)=>p.classList.toggle('sel',k===i));
+  items.forEach((b,k)=>b.setAttribute('aria-pressed',k===i?'true':'false'));
+  gShapes.appendChild(paths[i]); // bring to front
+  const T = TOUR[code] || ["",[],[],[]];
+  const esc = t => t.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const link = t => `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(t.replace(/[()]/g,' ')+' '+name)}" target="_blank" rel="noopener" title="Open in Google Maps">${esc(t)}</a>`;
+  const list = (arr,fn) => arr.length ? `<ul class="tl">${arr.map(t=>`<li>${fn(t)}</li>`).join('')}</ul>` : '<p class="empty">Nothing added yet.</p>';
+  panel.innerHTML=`
+    <h2>${name}</h2>
+    <span class="badge" style="background:var(${REGIONS[reg].v})">${REGIONS[reg].label}</span>
+    <p class="tag">${esc(T[0])}</p>
+    <p class="meta">${type} · Capital: ${esc(cap)}</p>
+    <h3>Places to visit <small>घूमने की जगहें</small></h3>${list(T[1],link)}
+    <h3>Famous food <small>खान-पान</small></h3>${list(T[2],esc)}
+    <h3>Holy places <small>धार्मिक स्थल</small></h3>${list(T[3],link)}
+    <a class="more" href="https://en.wikipedia.org/wiki/${encodeURIComponent(name.replace(/ /g,'_'))}" target="_blank" rel="noopener">Read more on Wikipedia</a><button class="clear" id="clr">Clear</button>`;
+  panel.scrollTop=0;
+  document.getElementById('clr').addEventListener('click',clearSel);
+  if(window.matchMedia('(max-width:840px)').matches) panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+Object.entries(REGIONS).forEach(([key,val])=>{
+  const b=document.createElement('button');
+  b.className='chip'; b.setAttribute('aria-pressed','false');
+  b.innerHTML=`<span class="dot" style="background:var(${val.v})"></span>${val.label}`;
+  b.addEventListener('click',()=>{
+    activeRegion=activeRegion===key?null:key;
+    filters.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+    if(activeRegion) b.setAttribute('aria-pressed','true');
+    const f=el=>el.classList.toggle('dim',!!activeRegion&&el.dataset.region!==activeRegion);
+    paths.forEach(f); items.forEach(f);
+  });
+  filters.appendChild(b);
+});
+
+/* ================= Navbar, views, search, contact, admin ================= */
+const CONTACT_EMAIL = 'you@example.com';   // <-- change this to your email
+const ADMIN_USER = 'admin', ADMIN_PASS = 'admin123';  // demo only, front-end check
+
+const views = {home:document.getElementById('view-home'), contact:document.getElementById('view-contact'), admin:document.getElementById('view-admin')};
+const navLinks = document.querySelectorAll('.links a');
+function show(v){
+  if(!views[v]) v='home';
+  Object.entries(views).forEach(([k,el])=>el.hidden = k!==v);
+  navLinks.forEach(a=>{ if(a.dataset.view===v) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
+  window.scrollTo(0,0);
+}
+navLinks.forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); show(a.dataset.view); }));
+window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+
+// Search with suggestions
+const sug = document.getElementById('suggest');
+let sugIdx = -1, sugList = [];
+function closeSug(){ sug.classList.remove('open'); q.setAttribute('aria-expanded','false'); sugIdx=-1; }
+function pick(i){ show('home'); select(i); q.value=''; items.forEach(b=>b.style.display=''); closeSug(); q.blur();
+  paths[i].scrollIntoView({block:'nearest',behavior:'smooth'}); }
+function renderSug(){
+  const v=q.value.trim().toLowerCase();
+  if(!v){ closeSug(); return; }
+  sugList = S.map((s,i)=>{
+    const T=TOUR[s[1]]||["",[],[],[]];
+    const direct = s[0].toLowerCase().includes(v)||s[1].toLowerCase()===v||s[2].toLowerCase().includes(v);
+    const hit = direct ? null : [...T[1],...T[2],...T[3]].find(t=>t.toLowerCase().includes(v));
+    return {i,s,direct,hit};
+  }).filter(o=>o.direct||o.hit).slice(0,8);
+  sug.innerHTML='';
+  if(!sugList.length){ sug.innerHTML='<div class="none">No state or place found</div>'; }
+  sugList.forEach(({i,s,hit},k)=>{
+    const b=document.createElement('button'); b.type='button'; b.setAttribute('role','option');
+    b.innerHTML=hit ? `<span>${hit}</span><small>${s[0]}</small>` : `<span>${s[0]}</span><small>${s[4]==='State'?'State':'UT'} · ${s[2].split(' (')[0]}</small>`;
+    b.addEventListener('mousedown',e=>e.preventDefault());
+    b.addEventListener('click',()=>pick(i));
+    sug.appendChild(b);
+  });
+  sug.classList.add('open'); q.setAttribute('aria-expanded','true'); sugIdx=-1;
+}
+q.addEventListener('input',renderSug);
+q.addEventListener('focus',renderSug);
+q.addEventListener('blur',()=>setTimeout(closeSug,120));
+q.addEventListener('keydown',e=>{
+  const btns=[...sug.querySelectorAll('button')];
+  if(e.key==='ArrowDown'&&btns.length){ e.preventDefault(); sugIdx=(sugIdx+1)%btns.length; }
+  else if(e.key==='ArrowUp'&&btns.length){ e.preventDefault(); sugIdx=(sugIdx-1+btns.length)%btns.length; }
+  else if(e.key==='Enter'){ e.preventDefault(); const t=sugList[sugIdx>=0?sugIdx:0]; if(t) pick(t.i); return; }
+  else if(e.key==='Escape'){ closeSug(); return; }
+  else return;
+  btns.forEach((b,k)=>b.classList.toggle('act',k===sugIdx));
+});
+
+// Contact (opens the visitor's email app, no server needed)
+const cs=document.getElementById('c-status');
+document.getElementById('c-send').addEventListener('click',()=>{
+  const n=document.getElementById('c-name').value.trim(), m=document.getElementById('c-email').value.trim(), t=document.getElementById('c-msg').value.trim();
+  cs.classList.remove('err');
+  if(!n||!/^\S+@\S+\.\S+$/.test(m)||!t){ cs.classList.add('err'); cs.textContent='Please fill in your name, a valid email and a message.'; return; }
+  const body=encodeURIComponent(t+'\n\n— '+n+' ('+m+')');
+  window.location.href='mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('BharatDarshan: message from '+n)+'&body='+body;
+  cs.textContent='Opening your email app to send the message.';
+});
+
+// Admin
+const $=id=>document.getElementById(id);
+let isAdmin=false;
+S.forEach((s,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=s[0]; $('a-state').appendChild(o); });
+Object.entries(REGIONS).forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v.label; $('a-reg').appendChild(o); });
+const lines = t => t.split('\n').map(x=>x.trim()).filter(Boolean);
+function loadAdminFields(){ const s=S[+$('a-state').value]; const T=TOUR[s[1]]||['',[],[],[]];
+  $('a-cap').value=s[2]; $('a-reg').value=s[3]; $('a-tag').value=T[0]; $('a-pl').value=T[1].join('\n'); $('a-fd').value=T[2].join('\n'); $('a-hl').value=T[3].join('\n'); }
+function dumpJson(){ $('a-json').value=JSON.stringify(S.map(s=>{const T=TOUR[s[1]]||['',[],[],[]];return {name:s[0],code:s[1],capital:s[2],region:s[3],type:s[4],tagline:T[0],places:T[1],food:T[2],holy:T[3]};}),null,2); }
+function adminView(){ $('adm-login').hidden=isAdmin; $('adm-panel').hidden=!isAdmin; if(isAdmin){ loadAdminFields(); dumpJson(); } }
+$('a-state').addEventListener('change',loadAdminFields);
+$('a-go').addEventListener('click',()=>{
+  if($('a-user').value.trim()===ADMIN_USER && $('a-pass').value===ADMIN_PASS){ isAdmin=true; $('a-err').textContent=''; $('a-pass').value=''; adminView(); }
+  else $('a-err').textContent='Wrong username or password.';
+});
+$('a-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') $('a-go').click(); });
+$('a-out').addEventListener('click',()=>{ isAdmin=false; $('a-msg').textContent=''; adminView(); });
+$('a-apply').addEventListener('click',()=>{
+  const i=+$('a-state').value, s=S[i];
+  s[2]=$('a-cap').value.trim()||s[2]; s[3]=$('a-reg').value;
+  TOUR[s[1]]=[$('a-tag').value.trim(),lines($('a-pl').value),lines($('a-fd').value),lines($('a-hl').value)];
+  const p=paths[i]; p.setAttribute('class','st r-'+s[3]+(p.classList.contains('sel')?' sel':'')); p.dataset.region=s[3]; items[i].dataset.region=s[3];
+  if(selected===i) select(i);
+  dumpJson(); $('a-msg').textContent='Updated '+s[0]+'. Open Home to see it on the map.';
+});
+$('a-copy').addEventListener('click',()=>{
+  const ta=$('a-json'); ta.select();
+  (navigator.clipboard?navigator.clipboard.writeText(ta.value):Promise.reject()).catch(()=>document.execCommand('copy'));
+  $('a-msg').textContent='JSON copied.';
+});
+navLinks.forEach(a=>{ if(a.dataset.view==='admin') a.addEventListener('click',adminView); });
+window.addEventListener('hashchange',()=>{ if(location.hash==='#admin') adminView(); });
+
+// Small screens: show short codes on the map so labels stay readable
+const mq = window.matchMedia('(max-width:640px)');
+function relabel(){
+  gLabels.querySelectorAll('text').forEach(t=>{
+    if(!t.dataset.full) return;
+    t.textContent = mq.matches ? t.dataset.code : t.dataset.full;
+  });
+}
+(mq.addEventListener ? mq.addEventListener('change',relabel) : mq.addListener(relabel));
+relabel();
+
+// Light / dark theme toggle
+const tb=document.getElementById('themebtn');
+function currentTheme(){ return document.documentElement.dataset.theme || 'light'; }
+function paintTheme(){ tb.textContent = currentTheme()==='dark' ? 'Light mode' : 'Dark mode'; }
+try{ const t=localStorage.getItem('india-map-theme-v2'); if(t) document.documentElement.dataset.theme=t; }catch(e){}
+tb.addEventListener('click',()=>{
+  const t=currentTheme()==='dark'?'light':'dark';
+  document.documentElement.dataset.theme=t;
+  try{ localStorage.setItem('india-map-theme-v2',t); }catch(e){}
+  paintTheme();
+});
+paintTheme();
+
+show(location.hash.slice(1)||'home');
+</script>
+</body>
+</html>
